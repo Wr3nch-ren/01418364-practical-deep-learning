@@ -1,26 +1,3 @@
-# "# Data details sorted by column\n",
-# "Data taken: productOnline.csv\n",
-# "1. brand\n",
-# "2. product name\n",
-# "3. class (target for classification)\n",
-# "- A = highest bought\n",
-# "- B = high bought\n",
-# "- C = medium bought\n",
-# "- D = low bought\n",
-# "4. procesor\n",
-# "5. CPU\n",
-# "6. Ram\n",
-# "7. Ram_type\n",
-# "8. ROM\n",
-# "9. ROM_Type\n",
-# "10. GPU\n",
-# "11. display_size\n",
-# "12. OS\n",
-# "13. warranty\n",
-# "(1-2, 4-13 = x, 3 = output)"
-
-# "ให้นิสิตใช้ขั้นตอนวิธีต้นไม้ตัดสินใจเรียนรู้จากชุดข้อมูล productOnline วัดประสิทธิภาพ และแสดงผลภาพต้นไม้"\
-    
 import numpy as np
 import pandas as pd
 from sklearn import metrics
@@ -40,8 +17,8 @@ def importdata(url):
 
 def splitdataset(balance_data):
     # Separating the targe variable
-    X = balance_data.iloc[:, [True, True, False, True, True, True, True, True, True, True, True, True, True]]
-    Y = balance_data.iloc[:, [False, False, True, False, False, False, False, False, False, False, False, False, False]]
+    X = balance_data.iloc[:, :-1]
+    Y = balance_data["CA level"].values
     
     print(X)
     print(Y)
@@ -85,15 +62,15 @@ def cal_accuracy(y_test, y_pred):
           metrics.classification_report(y_test, y_pred))
     
 if __name__ == "__main__":
-    url = "productOnline.csv"
-    data = importdata("productOnline.csv")
+    url = "cancer.csv"
+    data = importdata(url)
     X, Y, X_train, X_test, y_train, y_test = splitdataset(data)
     
     # Label Encoding
     le = LabelEncoder()
     
-    clf_gini = train_using_gini(X_train.apply(le.fit_transform), X_test.apply(le.fit_transform), y_train.apply(le.fit_transform))
-    clf_entropy = train_using_entropy(X_train.apply(le.fit_transform), X_test.apply(le.fit_transform), y_train.apply(le.fit_transform))
+    clf_gini = train_using_gini(X_train.apply(le.fit_transform), X_test.apply(le.fit_transform), y_train)
+    clf_entropy = train_using_entropy(X_train.apply(le.fit_transform), X_test.apply(le.fit_transform), y_train)
     
     # Visualizing the Decision Trees for both Gini Index and Entropy
     from sklearn.tree import export_graphviz
@@ -105,7 +82,7 @@ if __name__ == "__main__":
                     filled=True, rounded=True,
                     special_characters=True, feature_names=X.columns, class_names=['A','B','C','D'])
     graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
-    graph.write_png('productOnline.png')
+    graph.write_png('cancer_gini.png')
     Image(graph.create_png())
     
     dot_data = StringIO()
@@ -113,14 +90,14 @@ if __name__ == "__main__":
                     filled=True, rounded=True,
                     special_characters=True, feature_names=X.columns, class_names=['A','B','C','D'])
     graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
-    graph.write_png('productOnline2.png')
+    graph.write_png('cancer_entropy.png')
     Image(graph.create_png())
     
     # Operational Phase
     print("Results Using Gini Index:")
     y_pred_gini = prediction(X_test.apply(le.fit_transform), clf_gini)
-    cal_accuracy(y_test.apply(le.fit_transform), y_pred_gini)
+    cal_accuracy(y_test, y_pred_gini)
     
     print("Results Using Entropy:")
     y_pred_entropy = prediction(X_test.apply(le.fit_transform), clf_entropy)
-    cal_accuracy(y_test.apply(le.fit_transform), y_pred_entropy)
+    cal_accuracy(y_test, y_pred_entropy)
